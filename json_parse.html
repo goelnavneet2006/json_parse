@@ -1,0 +1,97 @@
+<script>
+function jsonParse(inputString) {
+  var result;
+
+  if (inputString[0] === "[") {
+    result = [];
+  } else {
+    result = {};
+  }
+
+  if (Array.isArray(result)) {
+    var ele = "";
+    var isString = false;
+    var isObj = false;
+    for (var i = 1; i < inputString.length; i++) {
+      if (inputString[i] === "\"") {
+        isString = true;
+      } else if (inputString[i].match(/[\w]/)) {
+        ele = ele.concat(inputString[i]);
+      } else if (inputString[i] === " ") {
+        //do nothing
+      } else if (inputString[i] === "," || inputString[i] === "]") {
+        if (isString || isObj) {
+          isString = false;
+          isObj = false;
+          result.push(ele);
+        } else {
+          result.push(Number(ele));
+        }
+        ele = "";
+        if (inputString[i] === "]") {
+          return {result: result, count: i};
+        }
+      } else if (inputString[i] === "[" || inputString[i] === "{") {
+        isObj = true;
+        temp = jsonParse(inputString.slice(i));
+        ele = temp.result;
+        i = i + temp.count;
+        continue;
+      }
+    }
+  } else {
+    var key = "";
+    var value = "";
+    var isKey = false;
+    var isValue = false;
+    var isString = false;
+    var isObj = false;
+    for (var i = 1; i < inputString.length; i++) {
+      if (inputString[i] === "\"") {
+        if (!isKey && !isValue && !key) {
+          isKey = true;
+        }
+        isString = true;
+      } else if (inputString[i].match(/[\w]/)) {
+        if (isKey) {
+          key = key.concat(inputString[i]);
+        } else if (isValue) {
+          value = value.concat(inputString[i]);
+        }
+      } else if (inputString[i] === " ") {
+        //do nothing
+      } else if (inputString[i] === ":") {
+        isString = false;
+        isKey = false;
+        isValue = true;
+      } else if (inputString[i] === "," || inputString[i] === "}") {
+        if (isString || isObj) {
+          isString = false;
+          isObj = false;
+          result[key] = value;
+        } else {
+          result[key] = Number(value);
+        }
+        isValue = false;
+        value = "";
+        key = "";
+        if (inputString[i] === "}") {
+          return {result: result, count: i};
+        }
+      } else if (inputString[i] === "[" || inputString[i] === "{") {
+        isObj = true;
+        temp = jsonParse(inputString.slice(i));
+        value = temp.result;
+        i = i + temp.count;
+        continue;
+      }
+    }
+  }
+}
+// kk= {a:1, b: 2, c: {d: 5, e: 6}, f: {g:7}, l: 5};
+kk = [{a: 2, c:[1,2,3, {a:5}]},"a",4,["d",3, "3424", [32,324,432], "3424", "4234242"], "234234", 2342];
+ll = JSON.stringify(kk)
+
+console.log("result: ", jsonParse(ll).result);
+
+</script>
